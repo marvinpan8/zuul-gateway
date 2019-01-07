@@ -21,12 +21,14 @@ Zuul 是Netflix 提供的一个开源组件,致力于在云平台上提供动态
 -------------
 
 ![这里写图片描述](https://img-blog.csdn.net/20170401103146894?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 book注册到eureka注册中心中，zuul本身也连接着同一个eureka，可以拉取book众多实例的列表。服务中心的注册发现一直是值得推崇的一种方式，但是不适用与网关产品。因为我们的网关是面向众多的**其他部门**的**已有**或是**异构架构**的系统，不应该强求其他系统都使用eureka，这样是有侵入性的设计。
 
 最终架构图
 -----
 
 ![这里写图片描述](https://img-blog.csdn.net/20170401111650676?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 要强调的一点是，gateway最终也会部署多个实例，达到分布式的效果，在架构图中没有画出，请大家自行脑补。
 
 本博客的示例使用最后一章架构图为例，带来动态路由的实现方式，会有具体的代码。
