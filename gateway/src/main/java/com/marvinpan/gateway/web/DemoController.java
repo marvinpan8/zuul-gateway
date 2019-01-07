@@ -47,8 +47,8 @@ public class DemoController {
     	vo.setId(tenantId);
     	vo.setPath("/"+tenantId+"/**");
     	vo.setUrl("http://"+serviceName+"/"+tenantId+"/svc.cluster.local:"+port);
-    	vo.setServiceId(serviceName);
-    	vo.setApiName(serviceName);
+//    	vo.setServiceId(serviceName);
+//    	vo.setApiName(serviceName);
     	int result = apiGatewayService.createOneRoute(vo);
     	if(result == 1) {
     		return "SUCCESS";
