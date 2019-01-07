@@ -274,6 +274,7 @@ public class ZuulConfiguration {
 ```
 我们要解决动态路由的难题，第一步就得理解路由定位器的作用。
 ![这里写图片描述](http://img.blog.csdn.net/20170401115214231?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 很失望，因为从接口关系来看，spring考虑到了路由刷新的需求，但是默认实现的SimpleRouteLocator没有实现RefreshableRouteLocator接口，看来我们只能借鉴DiscoveryClientRouteLocator去改造SimpleRouteLocator使其具备刷新能力。
 ```
 public interface RefreshableRouteLocator extends RouteLocator {
