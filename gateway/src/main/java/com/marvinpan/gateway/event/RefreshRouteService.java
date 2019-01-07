@@ -1,4 +1,4 @@
-package com.sinosoft.gateway.event;
+package com.marvinpan.gateway.event;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.netflix.zuul.RoutesRefreshedEvent;
