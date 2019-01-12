@@ -13,19 +13,22 @@ Zuul 是Netflix 提供的一个开源组件,致力于在云平台上提供动态
 传统互联网架构图
 ---------
 
-![这里写图片描述](http://img.blog.csdn.net/20170401101904656?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](https://img-blog.csdn.net/20170401101904656?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 上图是没有网关参与的一个最典型的互联网架构(本文中统一使用book代表应用实例，即真正提供服务的一个业务系统)
 
 加入eureka的架构图
 -------------
 
-![这里写图片描述](http://img.blog.csdn.net/20170401103146894?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](https://img-blog.csdn.net/20170401103146894?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 book注册到eureka注册中心中，zuul本身也连接着同一个eureka，可以拉取book众多实例的列表。服务中心的注册发现一直是值得推崇的一种方式，但是不适用与网关产品。因为我们的网关是面向众多的**其他部门**的**已有**或是**异构架构**的系统，不应该强求其他系统都使用eureka，这样是有侵入性的设计。
 
 最终架构图
 -----
 
-![这里写图片描述](http://img.blog.csdn.net/20170401111650676?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](https://img-blog.csdn.net/20170401111650676?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 要强调的一点是，gateway最终也会部署多个实例，达到分布式的效果，在架构图中没有画出，请大家自行脑补。
 
 本博客的示例使用最后一章架构图为例，带来动态路由的实现方式，会有具体的代码。
@@ -39,7 +42,7 @@ zuul--HelloWorldDemo
 
 项目结构
 ```
-	<groupId>com.sinosoft</groupId>
+	<groupId>com.marvinpan</groupId>
     <artifactId>zuul-gateway-demo</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
@@ -271,6 +274,7 @@ public class ZuulConfiguration {
 ```
 我们要解决动态路由的难题，第一步就得理解路由定位器的作用。
 ![这里写图片描述](http://img.blog.csdn.net/20170401115214231?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzgxNTU0Ng==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 很失望，因为从接口关系来看，spring考虑到了路由刷新的需求，但是默认实现的SimpleRouteLocator没有实现RefreshableRouteLocator接口，看来我们只能借鉴DiscoveryClientRouteLocator去改造SimpleRouteLocator使其具备刷新能力。
 ```
 public interface RefreshableRouteLocator extends RouteLocator {
