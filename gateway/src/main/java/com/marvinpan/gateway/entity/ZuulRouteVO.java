@@ -3,9 +3,14 @@ package com.marvinpan.gateway.entity;
 public class ZuulRouteVO {
 
     /**
-     * The ID of the route (the same as its map key by default).
+     * The ID of the route.
      */
     private String id;
+    
+    /**
+     * The tenantId of the route.
+     */
+    private String tenantId;
     
     /**
      * The path (pattern) for the route, e.g. /foo/**.
@@ -40,14 +45,22 @@ public class ZuulRouteVO {
 
     private Boolean enabled;
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
-    
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
 	public String getPath() {
         return path;
     }

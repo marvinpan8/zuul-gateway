@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -15,18 +16,16 @@ import org.springframework.cloud.netflix.zuul.filters.SimpleRouteLocator;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties.ZuulRoute;
 import org.springframework.cloud.netflix.zuul.util.RequestUtils;
-import org.springframework.util.StringUtils;
 
 import com.marvinpan.gateway.entity.ZuulRouteVO;
 import com.marvinpan.gateway.service.ApiGatewayService;
 import com.netflix.zuul.util.HTTPRequestUtils;
-
 /**
  * Created by pantj on 2019/1/4.
  */
-public class CustomRouteLocator extends SimpleRouteLocator implements RefreshableRouteLocator{
+public class ParamRouteLocator extends SimpleRouteLocator implements RefreshableRouteLocator{
 
-    public final static Logger log = LoggerFactory.getLogger(CustomRouteLocator.class);
+    public final static Logger log = LoggerFactory.getLogger(ParamRouteLocator.class);
 
     private ZuulProperties properties;
    
@@ -35,84 +34,62 @@ public class CustomRouteLocator extends SimpleRouteLocator implements Refreshabl
 	private String dispatcherServletPath = "/";
 	private String zuulServletPath;
 	
-//	@Autowired
-//	private RedisUtil redisUtil;
 	@Autowired
 	private ApiGatewayService apiGatewayService;
     
-    public CustomRouteLocator(String servletPath, ZuulProperties properties) {
+    public ParamRouteLocator(String servletPath, ZuulProperties properties) {
         super(servletPath, properties);
         this.properties = properties;
         log.info("servletPath:{}",servletPath);
         
-        if (servletPath != null && StringUtils.hasText(servletPath)) {
+        if (servletPath != null && org.springframework.util.StringUtils.hasText(servletPath)) {
 			this.dispatcherServletPath = servletPath;
 		}
 
 		this.zuulServletPath = properties.getServletPath();
     }
-
-    //父类已经提供了这个方法，这里写出来只是为了说明这一个方法很重要！！！
-//    @Override
-//    protected void doRefresh() {
-//        super.doRefresh();
-//    }
-
+    
+    /**
+     *  父类已经提供了这个方法，这里写出来只是为了说明这一个方法很重要！！！
+     */
     @Override
     public void refresh() {
         doRefresh();
     }
     
+    /**
+     * 注册初始化path的zuulHandlerMapping，
+     * 比如：静态文件"/**" -> "zuulHandlerMapping"，动态path "/asset/**" -> "zuulHandlerMapping"
+     */
     @Override
     protected Map<String, ZuulRoute> locateRoutes() {
         LinkedHashMap<String, ZuulRoute> routesMap = new LinkedHashMap<String, ZuulRoute>();
         //从application.properties中加载路由信息
-        routesMap.putAll(super.locateRoutes());
+//        routesMap.putAll(super.locateRoutes());
         //从db中加载路由信息
-//        routesMap.putAll(locateRoutesFromDB());
-        //优化一下配置
-        LinkedHashMap<String, ZuulRoute> values = new LinkedHashMap<>();
-        for (Map.Entry<String, ZuulRoute> entry : routesMap.entrySet()) {
-//            String path = entry.getKey();
-//            // Prepend with slash if not already present.
-//            if (!path.startsWith("/")) {
-//                path = "/" + path;
-//            }
-//            if (StringUtils.hasText(this.properties.getPrefix())) {
-//                path = this.properties.getPrefix() + path;
-//                if (!path.startsWith("/")) {
-//                    path = "/" + path;
-//                }
-//            }
-//            values.put(path, entry.getValue());
-        	
-        	 String tenantId = entry.getKey();
-        	 values.put(tenantId, entry.getValue());
+        List<ZuulRouteVO> initRouteList = apiGatewayService.locateRouteFromDB("initialization_id");
+        if( initRouteList != null && initRouteList.size() > 0 ) {
+        	for (int i = 0; i < initRouteList.size(); i++) {
+        		ZuulRouteVO zuulRouteVO = initRouteList.get(i);
+        		String path = zuulRouteVO.getPath();
+        		// Prepend with slash("/") if not already present.
+	            if (!path.startsWith("/")) {
+	                path = "/" + path;
+	            }
+	            if (StringUtils.isNotBlank(this.properties.getPrefix())) {
+	                path = this.properties.getPrefix() + path;
+	                if (!path.startsWith("/")) {
+	                    path = "/" + path;
+	                }
+	            }
+        		
+        		ZuulRoute  zuulRoute = new ZuulRoute();
+        		BeanUtils.copyProperties(zuulRouteVO,zuulRoute);
+        		routesMap.put(zuulRouteVO.getTenantId()+path, zuulRoute);
+			}
         }
-        return values;
+        return routesMap;
     }
-    /**
-           * 判断Redis中是否存在对应key的信息，若存在则从reids中获取，若不存在则从数据库查询，同时存入redis缓存中
-     * @param tenantId
-     * @return
-     */
-//    private ZuulRouteVO locateRouteFromRedisOrDB(String tenantId) {
-//    	ZuulRouteVO vo = null;
-//    	String key = "JRTZ-APIGATEWAY$" + tenantId; 
-//    	boolean flagException = false;
-//		try {
-//			if (redisUtil.exists(key)) {
-//				log.info("从Redis缓存中获取路由:{}信息", tenantId);
-//				return (ZuulRouteVO) redisUtil.get(key);
-//			} 
-//		} catch (Exception e) {
-//			flagException = true;
-//			log.info("从Redis缓存中获取路由 {} 异常：{}", tenantId, e);
-//		}
-//		vo = apiGatewayService.locateRouteFromDB(tenantId);
-//		if(!flagException) redisUtil.set(key, vo, 60 * 60 * 24L);
-//		return vo;
-//    }
     
     @Override
 	public Route getMatchingRoute(final String path) {
@@ -135,8 +112,6 @@ public class CustomRouteLocator extends SimpleRouteLocator implements Refreshabl
 		}
 		//调整路径，与参数无关
 		String adjustedPath = adjustPath(path);
-
-		ZuulRoute route = null;
 		/*=====================获取reqTenantId=========================*/
 		String reqTenantId = "";
 		Map<String, List<String>> map = HTTPRequestUtils.getInstance().getQueryParams();
@@ -145,16 +120,41 @@ public class CustomRouteLocator extends SimpleRouteLocator implements Refreshabl
 		}
         
         for (String key : map.keySet()) {
-        	if(org.apache.commons.lang3.StringUtils.equals("tenantId", key)) {
+        	if(StringUtils.equals("tenantid", key)) {
         		reqTenantId = map.get(key).get(0);
 			}
 		}
-        /*============================================================*/
+        /*===========================找路由 adjustedPath => contextPath=================================*/
+        ZuulRoute route = null;
 		if (!matchesIgnoredPatterns(adjustedPath)) {
-			ZuulRouteVO routeVO = apiGatewayService.locateRouteFromDB(reqTenantId);
-			if( routeVO != null ) {
-				route = new ZuulRoute();
-				BeanUtils.copyProperties(routeVO,route);
+			List<ZuulRouteVO> voList = apiGatewayService.locateRouteFromDB(reqTenantId);
+			if( adjustedPath.startsWith("/") && voList != null && voList.size() > 0 ) {
+				String contextPath = adjustedPath.substring(1, adjustedPath.length());
+				if(contextPath.contains("/")) {
+					int pathIndex = contextPath.indexOf("/");
+					contextPath = contextPath.substring(0, pathIndex);
+					contextPath = "/" + contextPath;
+				}
+				
+				ZuulRouteVO staticRouteVO = null; 
+				for (int i = 0; i < voList.size(); i++) {
+					ZuulRouteVO routeVO = voList.get(i);
+					int index = routeVO.getPath().indexOf("*") - 1;
+					if (index > 0) {
+						String routePathPrefix = routeVO.getPath().substring(0, index);
+						if(StringUtils.equals(routePathPrefix, contextPath)) {
+							route = new ZuulRoute();
+							BeanUtils.copyProperties(routeVO,route);
+							break;
+						}
+					}else {
+						staticRouteVO = routeVO;
+					}
+				}
+				if(route == null && staticRouteVO != null) {//静态文件
+					route = new ZuulRoute();
+					BeanUtils.copyProperties(staticRouteVO,route);
+				}
 			}
 		}
 		if (log.isDebugEnabled()) {
@@ -165,8 +165,8 @@ public class CustomRouteLocator extends SimpleRouteLocator implements Refreshabl
 
 	}
     
-    //copy parent class
-	private Route getRoute(ZuulRoute route, String path) {
+    //copy parent class, no modify
+	protected Route getRoute(ZuulRoute route, String path) {
 		if (route == null) {
 			return null;
 		}
@@ -192,19 +192,19 @@ public class CustomRouteLocator extends SimpleRouteLocator implements Refreshabl
 				route.isCustomSensitiveHeaders() ? route.getSensitiveHeaders() : null);
 	}
 	
-	//copy parent class
+	//copy parent class, no modify
 	private String adjustPath(final String path) {
 		String adjustedPath = path;
 
 		if (RequestUtils.isDispatcherServletRequest()
-				&& StringUtils.hasText(this.dispatcherServletPath)) {
+				&& org.springframework.util.StringUtils.hasText(this.dispatcherServletPath)) {
 			if (!this.dispatcherServletPath.equals("/")) {
 				adjustedPath = path.substring(this.dispatcherServletPath.length());
 				log.debug("Stripped dispatcherServletPath");
 			}
 		}
 		else if (RequestUtils.isZuulServletRequest()) {//上传文件/zuul
-			if (StringUtils.hasText(this.zuulServletPath)
+			if (org.springframework.util.StringUtils.hasText(this.zuulServletPath)
 					&& !this.zuulServletPath.equals("/")) {
 				adjustedPath = path.substring(this.zuulServletPath.length());
 				log.debug("Stripped zuulServletPath");

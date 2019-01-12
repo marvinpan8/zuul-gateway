@@ -32,7 +32,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marvinpan.gateway.zuul.CustomRouteLocator;
+import com.marvinpan.gateway.zuul.ParamRouteLocator;
 
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -57,8 +57,10 @@ public class RedisConfig extends CachingConfigurerSupport {
 			@Override
 			public Object generate(Object target, Method method, Object... params) {
 				StringBuilder sb = new StringBuilder();
+				sb.append("GatewayAPP.");
 				sb.append(target.getClass().getName());
 				sb.append(method.getName());
+				sb.append("$");
 				for (Object obj : params) {
 					sb.append(obj.toString());
 				}
@@ -96,6 +98,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		if(StringUtils.isNotBlank(redisConn.getPassword()))
 			factory.setPassword(redisConn.getPassword());
 		factory.setTimeout(redisConn.getTimeout()); // 设置连接超时时间
+		factory.setDatabase(redisConn.getDatabase());
 		JedisPoolConfig poolConfig = new JedisPoolConfig();
 		poolConfig.setMaxTotal(redisConn.getPool().getMaxTotal());
 		poolConfig.setMaxIdle(redisConn.getPool().getMaxIdle());

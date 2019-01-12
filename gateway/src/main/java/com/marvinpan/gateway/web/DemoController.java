@@ -40,15 +40,11 @@ public class DemoController {
     }
     
     @RequestMapping("/addRoute")
-    public String addRoute(@RequestParam String tenantId){
-    	String serviceName = "asset-service";
-    	String port = "6610";
+    public String addRoute(@RequestParam String id, @RequestParam String path, @RequestParam String url){
     	ZuulRouteVO vo = new ZuulRouteVO();
-    	vo.setId(tenantId);
-    	vo.setPath("/"+tenantId+"/**");
-    	vo.setUrl("http://"+serviceName+"/"+tenantId+"/svc.cluster.local:"+port);
-//    	vo.setServiceId(serviceName);
-//    	vo.setApiName(serviceName);
+    	vo.setTenantId(id);
+    	vo.setPath(path);
+    	vo.setUrl(url);
     	int result = apiGatewayService.createOneRoute(vo);
     	if(result == 1) {
     		return "SUCCESS";

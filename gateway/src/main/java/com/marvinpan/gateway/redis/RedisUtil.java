@@ -5,6 +5,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
+import com.marvinpan.gateway.entity.ZuulRouteVO;
+
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -116,6 +118,30 @@ public class RedisUtil{
 		}
 		return result;
 	}
+	
+	/**
+     * 判断Redis中是否存在对应key的信息，若存在则从reids中获取，
+     * 若不存在则从数据库查询，同时存入redis缓存中
+     * @param tenantId
+     * @return
+     */
+//    private ZuulRouteVO locateRouteFromRedisOrDB(String tenantId) {
+//    	ZuulRouteVO vo = null;
+//    	String key = "JRTZ-APIGATEWAY$" + tenantId; 
+//    	boolean flagException = false;
+//		try {
+//			if (redisUtil.exists(key)) {
+//				log.info("从Redis缓存中获取路由:{}信息", tenantId);
+//				return (ZuulRouteVO) redisUtil.get(key);
+//			} 
+//		} catch (Exception e) {
+//			flagException = true;
+//			log.info("从Redis缓存中获取路由 {} 异常：{}", tenantId, e);
+//		}
+//		vo = apiGatewayService.locateRouteFromDB(tenantId);
+//		if(!flagException) redisUtil.set(key, vo, 60 * 60 * 24L);
+//		return vo;
+//    }
 
 }
 

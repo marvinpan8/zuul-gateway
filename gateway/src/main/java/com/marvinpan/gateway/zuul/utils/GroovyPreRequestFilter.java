@@ -9,7 +9,7 @@ import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 
 //@Component
-public class PreRequestFilter extends ZuulFilter {
+public class GroovyPreRequestFilter extends ZuulFilter {
     private Logger logger = LoggerFactory.getLogger(getClass());
     @Override
 	public String filterType() {

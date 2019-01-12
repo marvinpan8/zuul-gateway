@@ -1,4 +1,6 @@
 .project
+/.idea
+/logs
 /.settings
 /book/.settings
 /book/.classpath

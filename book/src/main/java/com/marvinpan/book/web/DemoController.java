@@ -9,19 +9,19 @@ public class DemoController {
     @RequestMapping(value = "/available")
     public String available() {
     	String active = System.getProperty("spring.profiles.active");
-    	String ret = "Spring A1 in Action";
+    	String ret = "Spring A1 available in Action";
     	if(active == "a2") {
-    		ret = "Spring A2 in Action";
+    		ret = "Spring A2 available in Action";
     	}
         return ret;
     }
 
-    @RequestMapping(value = "/checkout")
+    @RequestMapping(value = "/checkout/action")
     public String checkedOut() {
     	String active = System.getProperty("spring.profiles.active");
-    	String ret = "Spring Boot A1 in Action";
+    	String ret = "Spring Boot A1 checkout in Action";
     	if(active == "a2") {
-    		ret = "Spring Boot A2 in Action";
+    		ret = "Spring Boot A2 checkout in Action";
     	}
         return ret;
     }
