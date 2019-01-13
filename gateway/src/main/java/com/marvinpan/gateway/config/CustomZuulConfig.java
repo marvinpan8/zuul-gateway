@@ -6,7 +6,7 @@ import org.springframework.cloud.netflix.zuul.filters.ZuulProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.marvinpan.gateway.zuul.ParamRouteLocator;
+import com.marvinpan.gateway.zuul.HeaderRouteLocator;
 
 /**
  * Created by xujingfeng on 2017/4/1.
@@ -20,8 +20,8 @@ public class CustomZuulConfig {
     ServerProperties server;
 
     @Bean
-    public ParamRouteLocator routeLocator() {
-        ParamRouteLocator routeLocator = new ParamRouteLocator
+    public HeaderRouteLocator routeLocator() {
+        HeaderRouteLocator routeLocator = new HeaderRouteLocator
         		(this.server.getServletPrefix(), this.zuulProperties);
         return routeLocator;
     }

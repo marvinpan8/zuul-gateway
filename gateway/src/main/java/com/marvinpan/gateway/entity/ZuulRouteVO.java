@@ -1,5 +1,7 @@
 package com.marvinpan.gateway.entity;
 
+import java.util.Date;
+
 public class ZuulRouteVO {
 
     /**
@@ -42,9 +44,11 @@ public class ZuulRouteVO {
     private Boolean retryable;
 
     private String apiName;
-
-    private Boolean enabled;
-
+    
+    private String token;
+    
+    private Date expireTime;
+    
 	public String getId() {
 		return id;
 	}
@@ -108,12 +112,21 @@ public class ZuulRouteVO {
     public void setApiName(String apiName) {
         this.apiName = apiName;
     }
+    
+    public String getToken() {
+		return token;
+	}
 
-    public Boolean getEnabled() {
-        return enabled;
-    }
+	public void setToken(String token) {
+		this.token = token;
+	}
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
+	public Date getExpireTime() {
+		return expireTime;
+	}
+
+	public void setExpireTime(Date expireTime) {
+		this.expireTime = expireTime;
+	}
+
 }

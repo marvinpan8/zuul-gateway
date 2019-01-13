@@ -1,4 +1,16 @@
-CREATE TABLE `gateway_api_define` (
+CREATE TABLE `tenant_info` (
+  `id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT 'id',
+  `tenant_id` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '租户id',
+  `token` VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'token信息',
+  `password` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '租户密码（加密后）',
+  `expire_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'token失效时间',
+  `enabled` TINYINT(4) NOT NULL DEFAULT 0 COMMENT '是否开启',
+  `create_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `remark` varchar(50) NOT NULL DEFAULT '' COMMENT '备注'
+) ENGINE=INNODB DEFAULT CHARSET=utf8 COMMENT='租户信息表';
+
+CREATE TABLE `api_route_info` (
   `id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT COMMENT 'id',
   `tenant_id` VARCHAR(50) NOT NULL COMMENT '租户id',
   `path` VARCHAR(20) NOT NULL DEFAULT '/**' COMMENT '路由path',
@@ -14,20 +26,20 @@ CREATE TABLE `gateway_api_define` (
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COMMENT='API网关规则';
 
 
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled, remark) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled, remark) 
 						VALUES ('initialization_id', '/**', 0, 'http://localhost:8090', 1, "初始化匹配路径");
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled, remark) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled, remark) 
 						VALUES ('initialization_id', '/checkout/**', 0, 'http://localhost:8091', 1, "初始化匹配路径");
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled, remark) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled, remark) 
 						VALUES ('initialization_id', '/available/**', 0, 'http://localhost:8091', 1, "初始化匹配路径");
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled, remark) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled, remark) 
 						VALUES ('initialization_id', '/eureka/**', 0, 'http://localhost:8091', 1, "初始化匹配路径");
 						
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled) 
 						VALUES ('pppp', '/**', 0, 'http://localhost:8090', 1);
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled) 
 						VALUES ('pppp', '/checkout/**', 0, 'http://localhost:8091', 1);
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled) 
 						VALUES ('xxxx', '/**', 0, 'http://localhost:8090', 1);
-INSERT INTO gateway_api_define (tenant_id, path, strip_prefix, url, enabled) 
+INSERT INTO api_route_info (tenant_id, path, strip_prefix, url, enabled) 
 						VALUES ('xxxx', '/available/**', 0, 'http://localhost:8091', 1);

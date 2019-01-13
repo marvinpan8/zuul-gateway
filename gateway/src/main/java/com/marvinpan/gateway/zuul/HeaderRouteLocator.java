@@ -1,9 +1,16 @@
 package com.marvinpan.gateway.zuul;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,16 +23,21 @@ import org.springframework.cloud.netflix.zuul.filters.SimpleRouteLocator;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties.ZuulRoute;
 import org.springframework.cloud.netflix.zuul.util.RequestUtils;
+import org.springframework.cloud.netflix.zuul.util.ZuulRuntimeException;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 
 import com.marvinpan.gateway.entity.ZuulRouteVO;
 import com.marvinpan.gateway.service.ApiGatewayService;
+import com.netflix.zuul.context.RequestContext;
+import com.netflix.zuul.exception.ZuulException;
 import com.netflix.zuul.util.HTTPRequestUtils;
 /**
- * Created by pantj on 2019/1/4.
+ * Created by pantj on 2019/1/12.
  */
-public class ParamRouteLocator extends SimpleRouteLocator implements RefreshableRouteLocator{
+public class HeaderRouteLocator extends SimpleRouteLocator implements RefreshableRouteLocator{
 
-    public final static Logger log = LoggerFactory.getLogger(ParamRouteLocator.class);
+    public final static Logger log = LoggerFactory.getLogger(HeaderRouteLocator.class);
 
     private ZuulProperties properties;
    
@@ -34,10 +46,12 @@ public class ParamRouteLocator extends SimpleRouteLocator implements Refreshable
 	private String dispatcherServletPath = "/";
 	private String zuulServletPath;
 	
+	private PathMatcher pathMatcher = new AntPathMatcher();
+	
 	@Autowired
 	private ApiGatewayService apiGatewayService;
     
-    public ParamRouteLocator(String servletPath, ZuulProperties properties) {
+    public HeaderRouteLocator(String servletPath, ZuulProperties properties) {
         super(servletPath, properties);
         this.properties = properties;
         log.info("servletPath:{}",servletPath);
@@ -67,7 +81,7 @@ public class ParamRouteLocator extends SimpleRouteLocator implements Refreshable
         //从application.properties中加载路由信息
 //        routesMap.putAll(super.locateRoutes());
         //从db中加载路由信息
-        List<ZuulRouteVO> initRouteList = apiGatewayService.locateRouteFromDB("initialization_id");
+        List<ZuulRouteVO> initRouteList = apiGatewayService.locateRouteFromTenantId("initialization_id");
         if( initRouteList != null && initRouteList.size() > 0 ) {
         	for (int i = 0; i < initRouteList.size(); i++) {
         		ZuulRouteVO zuulRouteVO = initRouteList.get(i);
@@ -112,57 +126,55 @@ public class ParamRouteLocator extends SimpleRouteLocator implements Refreshable
 		}
 		//调整路径，与参数无关
 		String adjustedPath = adjustPath(path);
-		/*=====================获取reqTenantId=========================*/
-		String reqTenantId = "";
-		Map<String, List<String>> map = HTTPRequestUtils.getInstance().getQueryParams();
-        if (map == null) {
-			return null;
+		/*=====================获取token=========================*/
+		
+		String token = HTTPRequestUtils.getInstance().getHeaderValue("Authorization");
+		
+		if(token == null) {
+			exportUnauthorizedException();
 		}
         
-        for (String key : map.keySet()) {
-        	if(StringUtils.equals("tenantid", key)) {
-        		reqTenantId = map.get(key).get(0);
-			}
-		}
-        /*===========================找路由 adjustedPath => contextPath=================================*/
+        /*===========================找路由 adjustedPath=================================*/
         ZuulRoute route = null;
 		if (!matchesIgnoredPatterns(adjustedPath)) {
-			List<ZuulRouteVO> voList = apiGatewayService.locateRouteFromDB(reqTenantId);
-			if( adjustedPath.startsWith("/") && voList != null && voList.size() > 0 ) {
-				String contextPath = adjustedPath.substring(1, adjustedPath.length());
-				if(contextPath.contains("/")) {
-					int pathIndex = contextPath.indexOf("/");
-					contextPath = contextPath.substring(0, pathIndex);
-					contextPath = "/" + contextPath;
-				}
-				
-				ZuulRouteVO staticRouteVO = null; 
-				for (int i = 0; i < voList.size(); i++) {
-					ZuulRouteVO routeVO = voList.get(i);
-					int index = routeVO.getPath().indexOf("*") - 1;
-					if (index > 0) {
-						String routePathPrefix = routeVO.getPath().substring(0, index);
-						if(StringUtils.equals(routePathPrefix, contextPath)) {
-							route = new ZuulRoute();
-							BeanUtils.copyProperties(routeVO,route);
-							break;
-						}
-					}else {
-						staticRouteVO = routeVO;
+			List<ZuulRouteVO> voList = new ArrayList<ZuulRouteVO>();
+			try {
+				voList = apiGatewayService.locateRouteFromToken(token);
+			} catch (Exception e) {
+				throw new ZuulRuntimeException(new ZuulException(
+								"locate Route error",HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+								"Internal server error, pls contact Customer Service"));
+			}
+			
+			if(voList == null || voList.size() == 0) {
+				exportUnauthorizedException();
+			}
+			
+			for (int i = 0; i < voList.size(); i++) {
+				ZuulRouteVO routeVO = voList.get(i);
+				if (this.pathMatcher.match(routeVO.getPath(), adjustedPath)) {
+					Date expireTime = routeVO.getExpireTime();
+					if(expireTime.getTime() < Clock.systemDefaultZone().millis()) {
+						exportUnauthorizedException();
 					}
-				}
-				if(route == null && staticRouteVO != null) {//静态文件
 					route = new ZuulRoute();
-					BeanUtils.copyProperties(staticRouteVO,route);
+					BeanUtils.copyProperties(routeVO,route);
+					break;
 				}
 			}
 		}
 		if (log.isDebugEnabled()) {
 			log.debug("route matched=" + route);
 		}
-
+		
 		return getRoute(route, adjustedPath);
 
+	}
+
+	private void exportUnauthorizedException() {
+		throw new ZuulRuntimeException(new ZuulException(
+				"unauthorized",HttpServletResponse.SC_UNAUTHORIZED,
+				"Api unauthorized"));
 	}
     
     //copy parent class, no modify

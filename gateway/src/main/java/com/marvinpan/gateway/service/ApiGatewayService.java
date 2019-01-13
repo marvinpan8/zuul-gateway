@@ -19,27 +19,35 @@ import com.marvinpan.gateway.entity.ZuulRouteVO;
 @Service
 public class ApiGatewayService {
 	public final static Logger log = LoggerFactory.getLogger(ApiGatewayService.class);
-    private static final String SQL_SELECT_GATEWAY_API_DEFINE_FROM_TENANT_ID = 
-    		"select * from gateway_api_define where enabled = true and tenant_id = ?"; 
-    private static final String SQL_SELECT_GATEWAY_API_DEFINE_ALL = 
-    		"select * from gateway_api_define where enabled = true"; 
-    private static final String SQL_INSERT_GATEWAY_API_DEFINE = 
-    "INSERT INTO gateway_api_define (tenant_id, path, url, strip_prefix, enabled) VALUES(?,?,?,?,?)"; 
+    private static final String SQL_SELECT_API_ROUTE_INFO_FROM_TENANT_ID = 
+    		"select id, tenant_id, path, url, strip_prefix, api_name, service_id, retryable from api_route_info where enabled = true and tenant_id = ?"; 
+    private static final String SQL_SELECT_API_ROUTE_INFO_ALL = 
+    		"select id, tenant_id, path, url, strip_prefix, api_name, service_id, retryable from api_route_info where enabled = true"; 
+    private static final String SQL_INSERT_API_ROUTE_INFO = 
+    "INSERT INTO api_route_info (tenant_id, path, url, strip_prefix, enabled) VALUES(?,?,?,?,?)";
+    private static final String SQL_SELECT_API_ROUTE_INFO_FROM_TOKEN = 
+    "select a.id, a.tenant_id, a.path, a.url, a.strip_prefix, a.api_name,a.service_id,a.retryable, t.token, t.expire_time from api_route_info a, tenant_info t where a.enabled = true and t.enabled = true and a.tenant_id = t.tenant_id and t.token = ?";
     
     @Autowired
     JdbcTemplate jdbcTemplate;
     
     
-    @Cacheable(value="zuulRouteVoList")
-	public List<ZuulRouteVO> locateRouteFromDB(String tenantId) {
-		return jdbcTemplate.query(SQL_SELECT_GATEWAY_API_DEFINE_FROM_TENANT_ID, 
+//    @Cacheable(value="zuulRouteVoListFromTenantId")
+	public List<ZuulRouteVO> locateRouteFromTenantId(String tenantId) {
+		return jdbcTemplate.query(SQL_SELECT_API_ROUTE_INFO_FROM_TENANT_ID, 
+				new Object[] {tenantId}, new BeanPropertyRowMapper<ZuulRouteVO>(ZuulRouteVO.class));
+	}
+    
+    @Cacheable(value="zuulRouteVoListFromToken")
+	public List<ZuulRouteVO> locateRouteFromToken(String tenantId) {
+		return jdbcTemplate.query(SQL_SELECT_API_ROUTE_INFO_FROM_TOKEN, 
 				new Object[] {tenantId}, new BeanPropertyRowMapper<ZuulRouteVO>(ZuulRouteVO.class));
 	}
     
     @Deprecated
     public Map<String, ZuulRoute> locateRoutesFromDB(){
         Map<String, ZuulRoute> routes = new LinkedHashMap<>();
-        List<ZuulRouteVO> results = jdbcTemplate.query(SQL_SELECT_GATEWAY_API_DEFINE_ALL,
+        List<ZuulRouteVO> results = jdbcTemplate.query(SQL_SELECT_API_ROUTE_INFO_ALL,
         		new BeanPropertyRowMapper<ZuulRouteVO>(ZuulRouteVO.class));
         for (ZuulRouteVO result : results) {
             if(org.apache.commons.lang3.StringUtils.isBlank(result.getPath()) 
@@ -59,8 +67,8 @@ public class ApiGatewayService {
     }
     
     public int createOneRoute(ZuulRouteVO vo) {
-    	return jdbcTemplate.update(SQL_INSERT_GATEWAY_API_DEFINE, 
-    			new Object[]{vo.getTenantId(), vo.getPath(), vo.getUrl(), 1, 1});
+    	return jdbcTemplate.update(SQL_INSERT_API_ROUTE_INFO, 
+    			new Object[]{vo.getTenantId(), vo.getPath(), vo.getUrl(), 0, 1});
     }
     
     

@@ -1,5 +1,8 @@
 package com.marvinpan.book.web;
 
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +27,12 @@ public class DemoController {
     		ret = "Spring Boot A2 checkout in Action";
     	}
         return ret;
+    }
+    
+    @RequestMapping("/sleep/{sleepTime}")
+    public String sleep(@PathVariable Long sleepTime) throws InterruptedException {
+     TimeUnit.SECONDS.sleep(sleepTime);
+     return "SUCCESS";
     }
 	
 }
