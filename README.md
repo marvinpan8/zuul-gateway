@@ -42,7 +42,7 @@ zuul--HelloWorldDemo
 
 项目结构
 ```
-	<groupId>com.marvinpan</groupId>
+    <groupId>com.marvinpan</groupId>
     <artifactId>zuul-gateway-demo</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
