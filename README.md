@@ -1,5 +1,5 @@
-# zuul-gateway-demo
-zuul动态路由demo
+# zuul-gateway
+zuul动态路由
 
 前言
 --
