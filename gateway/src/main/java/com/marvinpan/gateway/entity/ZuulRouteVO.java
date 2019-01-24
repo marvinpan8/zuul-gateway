@@ -1,7 +1,14 @@
 package com.marvinpan.gateway.entity;
 
-import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class ZuulRouteVO {
 
     /**
@@ -45,88 +52,4 @@ public class ZuulRouteVO {
 
     private String apiName;
     
-    private String token;
-    
-    private Date expireTime;
-    
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getTenantId() {
-		return tenantId;
-	}
-
-	public void setTenantId(String tenantId) {
-		this.tenantId = tenantId;
-	}
-
-	public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getServiceId() {
-        return serviceId;
-    }
-
-    public void setServiceId(String serviceId) {
-        this.serviceId = serviceId;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public boolean isStripPrefix() {
-        return stripPrefix;
-    }
-
-    public void setStripPrefix(boolean stripPrefix) {
-        this.stripPrefix = stripPrefix;
-    }
-
-    public Boolean getRetryable() {
-        return retryable;
-    }
-
-    public void setRetryable(Boolean retryable) {
-        this.retryable = retryable;
-    }
-
-    public String getApiName() {
-        return apiName;
-    }
-
-    public void setApiName(String apiName) {
-        this.apiName = apiName;
-    }
-    
-    public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public Date getExpireTime() {
-		return expireTime;
-	}
-
-	public void setExpireTime(Date expireTime) {
-		this.expireTime = expireTime;
-	}
-
 }

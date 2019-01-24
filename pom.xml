@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.marvinpan</groupId>
-    <artifactId>zuul-gateway-demo</artifactId>
+    <artifactId>zuul-gateway</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
 

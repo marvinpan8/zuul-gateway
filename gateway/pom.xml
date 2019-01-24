@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>zuul-gateway-demo</artifactId>
+        <artifactId>zuul-gateway</artifactId>
         <groupId>com.marvinpan</groupId>
         <version>1.0</version>
     </parent>
@@ -52,7 +52,15 @@
 		    <groupId>com.google.code.gson</groupId>
 		    <artifactId>gson</artifactId>
 		</dependency>
+		<dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+		<dependency>
+		    <groupId>com.github.ulisesbocchio</groupId>
+		    <artifactId>jasypt-spring-boot</artifactId>
+		    <version>1.18</version>
+		</dependency>
     </dependencies>
-
-
 </project>

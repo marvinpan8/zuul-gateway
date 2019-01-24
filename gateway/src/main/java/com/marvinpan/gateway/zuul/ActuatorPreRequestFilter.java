@@ -11,7 +11,7 @@ import org.springframework.web.util.UrlPathHelper;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 
-//@Component
+@Component
 public class ActuatorPreRequestFilter extends ZuulFilter {
     
 	public final static Logger log = LoggerFactory.getLogger(ActuatorPreRequestFilter.class);
@@ -47,6 +47,7 @@ public class ActuatorPreRequestFilter extends ZuulFilter {
     	RequestContext ctx = RequestContext.getCurrentContext();
 		final String requestURI = this.urlPathHelper.getPathWithinApplication(ctx.getRequest());
 		if( matchesIgnoredPatterns(requestURI) ) {
+			//目的跳过路由过滤器PreDecorationFilter
 			ctx.set("forward.to", requestURI);
 		}
         return null;

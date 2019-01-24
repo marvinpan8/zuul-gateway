@@ -3,10 +3,13 @@ package com.marvinpan.gateway.redis;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+
 import redis.clients.jedis.JedisPoolConfig;
 
 @Component
 @ConfigurationProperties(prefix = "spring.redis")
+@EnableEncryptableProperties
 public class RedisConn {
 	//prefix+参数名  对应于配置文件config.properties中的spring.redis.*信息
 	private String host;

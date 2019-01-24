@@ -1,13 +1,9 @@
 package com.marvinpan.gateway.zuul;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletResponse;
@@ -31,7 +27,6 @@ import com.marvinpan.gateway.entity.ZuulRouteVO;
 import com.marvinpan.gateway.service.ApiGatewayService;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
-import com.netflix.zuul.util.HTTPRequestUtils;
 /**
  * Created by pantj on 2019/1/12.
  */
@@ -50,7 +45,7 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 	
 	@Autowired
 	private ApiGatewayService apiGatewayService;
-    
+	
     public HeaderRouteLocator(String servletPath, ZuulProperties properties) {
         super(servletPath, properties);
         this.properties = properties;
@@ -126,20 +121,20 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 		}
 		//调整路径，与参数无关
 		String adjustedPath = adjustPath(path);
-		/*=====================获取token=========================*/
-		
-		String token = HTTPRequestUtils.getInstance().getHeaderValue("Authorization");
-		
-		if(token == null) {
-			exportUnauthorizedException();
-		}
-        
+		/*=====================获取tenantId=========================*/
+		 RequestContext ctx = RequestContext.getCurrentContext();
+		 String tenantId = (String)ctx.remove("tenantid");
+		 if(StringUtils.isBlank(tenantId)) {
+			 throw new ZuulRuntimeException(new ZuulException(
+						"Can not find Route ID",HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Internal server error, pls contact Customer Service"));
+		 }
         /*===========================找路由 adjustedPath=================================*/
         ZuulRoute route = null;
 		if (!matchesIgnoredPatterns(adjustedPath)) {
 			List<ZuulRouteVO> voList = new ArrayList<ZuulRouteVO>();
 			try {
-				voList = apiGatewayService.locateRouteFromToken(token);
+				voList = apiGatewayService.locateRouteFromTenantId(tenantId);
 			} catch (Exception e) {
 				throw new ZuulRuntimeException(new ZuulException(
 								"locate Route error",HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -147,16 +142,14 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 			}
 			
 			if(voList == null || voList.size() == 0) {
-				exportUnauthorizedException();
+				throw new ZuulRuntimeException(new ZuulException(
+						"unauthorized 2",HttpServletResponse.SC_UNAUTHORIZED,
+						"Api unauthorized 2"));
 			}
 			
 			for (int i = 0; i < voList.size(); i++) {
 				ZuulRouteVO routeVO = voList.get(i);
 				if (this.pathMatcher.match(routeVO.getPath(), adjustedPath)) {
-					Date expireTime = routeVO.getExpireTime();
-					if(expireTime.getTime() < Clock.systemDefaultZone().millis()) {
-						exportUnauthorizedException();
-					}
 					route = new ZuulRoute();
 					BeanUtils.copyProperties(routeVO,route);
 					break;
@@ -171,12 +164,6 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 
 	}
 
-	private void exportUnauthorizedException() {
-		throw new ZuulRuntimeException(new ZuulException(
-				"unauthorized",HttpServletResponse.SC_UNAUTHORIZED,
-				"Api unauthorized"));
-	}
-    
     //copy parent class, no modify
 	protected Route getRoute(ZuulRoute route, String path) {
 		if (route == null) {

@@ -16,13 +16,13 @@ import com.marvinpan.gateway.service.ApiGatewayService;
  * Created by xujingfeng on 2017/4/1.
  */
 @RestController
-public class DemoController {
+public class RouteController {
 
     @Autowired
     RefreshRouteService refreshRouteService;
     @Autowired
     ApiGatewayService apiGatewayService;
-
+    
     @RequestMapping("/refreshRoute")
     public String refreshRoute(){
         refreshRouteService.refreshRoute();
@@ -50,6 +50,15 @@ public class DemoController {
     		return "SUCCESS";
     	}
         return "FAILURE";
+    }
+    
+    /**
+           *   心跳健康检查
+     * @return
+     */
+    @RequestMapping("/health")
+    public String checkHealth(){
+        return "OK";
     }
 
 }
