@@ -23,7 +23,7 @@ public class RouteController {
     @Autowired
     ApiGatewayService apiGatewayService;
     
-    @RequestMapping("/refreshRoute")
+    @RequestMapping("/refreshroute")
     public String refreshRoute(){
         refreshRouteService.refreshRoute();
         return "refreshRoute";
@@ -32,14 +32,14 @@ public class RouteController {
     @Autowired
     ZuulHandlerMapping zuulHandlerMapping;
 
-    @RequestMapping("/watchNowRoute")
+    @RequestMapping("/watchroute")
     public String watchNowRoute(){
         //可以用debug模式看里面具体是什么
         Map<String, Object> handlerMap = zuulHandlerMapping.getHandlerMap();
-        return "watchNowRoute";
+        return "watchroute";
     }
     
-    @RequestMapping("/addRoute")
+    @RequestMapping("/addroute")
     public String addRoute(@RequestParam String id, @RequestParam String path, @RequestParam String url){
     	ZuulRouteVO vo = new ZuulRouteVO();
     	vo.setTenantId(id);
