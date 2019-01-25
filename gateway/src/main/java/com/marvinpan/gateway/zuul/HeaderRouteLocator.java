@@ -67,8 +67,8 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
     }
     
     /**
-     * 注册初始化path的zuulHandlerMapping，
-     * 比如：静态文件"/**" -> "zuulHandlerMapping"，动态path "/asset/**" -> "zuulHandlerMapping"
+           * 注册初始化path的zuulHandlerMapping，
+           * 比如：静态文件"/**" -> "zuulHandlerMapping"，动态path "/asset/**" -> "zuulHandlerMapping"
      */
     @Override
     protected Map<String, ZuulRoute> locateRoutes() {
@@ -121,6 +121,11 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 		}
 		//调整路径，与参数无关
 		String adjustedPath = adjustPath(path);
+		if(adjustedPath == null) {
+			throw new ZuulRuntimeException(new ZuulException(
+					"Can not find Route Path",HttpServletResponse.SC_NOT_FOUND,
+					"Can not find Route Path"));
+		}
 		/*=====================获取tenantId=========================*/
 		 RequestContext ctx = RequestContext.getCurrentContext();
 		 String tenantId = (String)ctx.remove("tenantid");
@@ -149,7 +154,19 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 			
 			for (int i = 0; i < voList.size(); i++) {
 				ZuulRouteVO routeVO = voList.get(i);
-				if (this.pathMatcher.match(routeVO.getPath(), adjustedPath)) {
+				String zuulpath = routeVO.getPath();
+				// Prepend with slash("/") if not already present.
+	            if (!zuulpath.startsWith("/")) {
+	            	zuulpath = "/" + zuulpath;
+	            }
+	            if (StringUtils.isNotBlank(this.properties.getPrefix())) {
+	            	zuulpath = this.properties.getPrefix() + zuulpath;
+	                if (!zuulpath.startsWith("/")) {
+	                	zuulpath = "/" + zuulpath;
+	                }
+	            }
+				
+				if (this.pathMatcher.match(zuulpath, adjustedPath)) {
 					route = new ZuulRoute();
 					BeanUtils.copyProperties(routeVO,route);
 					break;
@@ -160,50 +177,25 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 			log.debug("route matched=" + route);
 		}
 		
-		return getRoute(route, adjustedPath);
+		return super.getRoute(route, adjustedPath);
 
 	}
-
+    
     //copy parent class, no modify
-	protected Route getRoute(ZuulRoute route, String path) {
-		if (route == null) {
-			return null;
-		}
-		String targetPath = path;
-		String prefix = this.properties.getPrefix();
-		if (path.startsWith(prefix) && this.properties.isStripPrefix()) {
-			targetPath = path.substring(prefix.length());
-		}
-		if (route.isStripPrefix()) {
-			int index = route.getPath().indexOf("*") - 1;
-			if (index > 0) {
-				String routePrefix = route.getPath().substring(0, index);
-				targetPath = targetPath.replaceFirst(routePrefix, "");
-				prefix = prefix + routePrefix;
-			}
-		}
-		Boolean retryable = this.properties.getRetryable();
-		if (route.getRetryable() != null) {
-			retryable = route.getRetryable();
-		}
-		return new Route(route.getId(), targetPath, route.getLocation(), prefix,
-				retryable,
-				route.isCustomSensitiveHeaders() ? route.getSensitiveHeaders() : null);
-	}
-	
-	//copy parent class, no modify
 	private String adjustPath(final String path) {
+		if(StringUtils.isBlank(path)) return null;
+		
 		String adjustedPath = path;
-
+		//dispatcherServletPath=/ 默认进入此方法，去除最前面的dispatcherServletPath
 		if (RequestUtils.isDispatcherServletRequest()
-				&& org.springframework.util.StringUtils.hasText(this.dispatcherServletPath)) {
+				&& StringUtils.isNotBlank(this.dispatcherServletPath)) {
 			if (!this.dispatcherServletPath.equals("/")) {
 				adjustedPath = path.substring(this.dispatcherServletPath.length());
 				log.debug("Stripped dispatcherServletPath");
 			}
 		}
 		else if (RequestUtils.isZuulServletRequest()) {//上传文件/zuul
-			if (org.springframework.util.StringUtils.hasText(this.zuulServletPath)
+			if (StringUtils.isNotBlank(this.zuulServletPath)
 					&& !this.zuulServletPath.equals("/")) {
 				adjustedPath = path.substring(this.zuulServletPath.length());
 				log.debug("Stripped zuulServletPath");
@@ -212,9 +204,8 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
 		else {
 			// do nothing
 		}
-
-		log.debug("adjustedPath=" + path);
+		log.debug("adjustedPath=" + adjustedPath);
 		return adjustedPath;
 	}
-    
+
 }

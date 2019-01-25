@@ -69,10 +69,8 @@ public class AccessFilter extends ZuulFilter {
 		
 		try {
 			token = new String(decoder.decode(token.getBytes("UTF-8")));
-		} catch (UnsupportedEncodingException e) {
-			throw new ZuulRuntimeException(new ZuulException(
-					"decode UTF-8 error",HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					"Authorization decode UTF-8 error"));
+		} catch (Exception e) {
+			exportUnauthorizedException();
 		}
 		
 		//==========================调用认证中心===================================
