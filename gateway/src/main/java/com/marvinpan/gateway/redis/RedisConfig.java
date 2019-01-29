@@ -49,10 +49,12 @@ public class RedisConfig extends CachingConfigurerSupport {
 			@Override
 			public Object generate(Object target, Method method, Object... params) {
 				StringBuilder sb = new StringBuilder();
-				sb.append("GatewayAPP.");
-				sb.append(target.getClass().getName());
-				sb.append(method.getName());
-				sb.append("$");
+				sb.append("GatewayAPP$")
+				  .append(target.getClass().getName())
+				  .append("$")
+//				  .append(method.getName())
+				  .append("locateRouteFromTenantId")
+				  .append("$");
 				for (Object obj : params) {
 					sb.append(obj.toString());
 				}

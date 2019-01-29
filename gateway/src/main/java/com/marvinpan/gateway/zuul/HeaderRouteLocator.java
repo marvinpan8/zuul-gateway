@@ -76,7 +76,7 @@ public class HeaderRouteLocator extends SimpleRouteLocator implements Refreshabl
         //从application.properties中加载路由信息
 //        routesMap.putAll(super.locateRoutes());
         //从db中加载路由信息
-        List<ZuulRouteVO> initRouteList = apiGatewayService.locateRouteFromTenantId("initialization_id");
+        List<ZuulRouteVO> initRouteList = apiGatewayService.locateRouteFromDBInit();
         if( initRouteList != null && initRouteList.size() > 0 ) {
         	for (int i = 0; i < initRouteList.size(); i++) {
         		ZuulRouteVO zuulRouteVO = initRouteList.get(i);

@@ -1,6 +1,5 @@
 package com.marvinpan.gateway.zuul;
 
-import java.io.UnsupportedEncodingException;
 import java.time.Clock;
 import java.util.Base64;
 

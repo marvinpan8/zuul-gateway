@@ -1,4 +1,4 @@
-package com.marvinpan.gateway.zuul;
+package com.marvinpan.gateway.zuul.utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,11 +13,11 @@ import com.marvinpan.gateway.entity.BaseResult;
  * 自定义error错误页面
  * @author zhiguang
  */
-@RestController
+//@RestController
 public class ErrorHandlerController implements ErrorController {
  
     /**
-     * 出异常后进入该方法，交由下面的方法处理
+           * 出异常后进入该方法，交由下面的方法处理
      */
     @Override
     public String getErrorPath() {

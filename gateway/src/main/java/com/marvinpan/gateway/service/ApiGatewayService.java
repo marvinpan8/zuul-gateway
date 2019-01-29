@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.netflix.zuul.filters.ZuulProperties.ZuulRoute;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -32,11 +33,21 @@ public class ApiGatewayService {
     JdbcTemplate jdbcTemplate;
     
     
+	public List<ZuulRouteVO> locateRouteFromDBInit() {
+		return jdbcTemplate.query(SQL_SELECT_API_ROUTE_INFO_FROM_TENANT_ID, 
+				new Object[] {"initialization_id"}, new BeanPropertyRowMapper<ZuulRouteVO>(ZuulRouteVO.class));
+	}
+    
     @Cacheable(value="zuulRouteVoListFromTenantId")
 	public List<ZuulRouteVO> locateRouteFromTenantId(String tenantId) {
 		return jdbcTemplate.query(SQL_SELECT_API_ROUTE_INFO_FROM_TENANT_ID, 
 				new Object[] {tenantId}, new BeanPropertyRowMapper<ZuulRouteVO>(ZuulRouteVO.class));
 	}
+    
+    @CacheEvict(value="zuulRouteVoListFromTenantId")
+    public void deleteZuulRouteVoListFromTenantId(String tenantId) {
+    	log.info("delete route by tenantid: {}" , tenantId);
+    }
     
 //    @Cacheable(value="zuulRouteVoListFromToken")
     @Deprecated
